@@ -11,6 +11,10 @@ function updateColor() {
     const body = document.querySelector(`body`);
     //changing the background color of the body using the values of the sliders
     body.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+
+    localStorage.setItem(`red`, red);
+    localStorage.setItem(`blue`, blue);
+    localStorage.setItem(`green`, green);
 }
 
 function makeColorSlidersWork() {
@@ -24,6 +28,24 @@ function makeColorSlidersWork() {
     for(let slider of sliders) {
         slider.addEventListener(`input`, updateColor);
     }
+
+    const red = localStorage.getItem(`red`);
+    const blue = localStorage.getItem(`blue`);
+    const green = localStorage.getItem(`green`);
+    
+    if(red !== null){
+        redSlider.value = red;
+    }
+    if(blue !== null){
+        blueSlider.value = blue;
+    }
+    if(green !== null){
+        greenSlider.value = green;
+    }
+    if(red !== null && blue !== null && green !== null){
+        const body = document.querySelector(`body`);
+        body.style.backgroundColor = `rgb(${red}, ${green}, ${blue})`;
+    }
 }
 
 function changeLogo() {
@@ -35,6 +57,7 @@ function changeLogo() {
     const logoImg = document.querySelector(`#logo`);
     //getting the image from the images folder
     logoImg.src = `./images/${logo}`;
+    localStorage.setItem(`logo`, logo);
 }
 
 function makeLogoSelectWork() {
@@ -42,10 +65,28 @@ function makeLogoSelectWork() {
     const logoSelector = document.querySelector(`#logo-selector`);
     //adding an event listener to it
     logoSelector.addEventListener(`change`, changeLogo);
+    if(localStorage.getItem(`logo`) !== null) {
+        const logoImg = document.querySelector(`#logo`);
+        const logoFromLocalStorage = localStorage.getItem(`logo`);
+        logoImg.src = `./images/${logoFromLocalStorage}`;
+        const logoSelector = document.querySelector(`#logo-selector`);
+        logoSelector.value = logoFromLocalStorage;
+    }
+
 }
 
 function setTheUsersName() {
-
+    let userName = document.querySelector(`#userName`);
+    
+    let name = null;
+    if(localStorage.getItem(`name`) !== null) {
+        name = localStorage.getItem(`name`);
+    }
+    else{
+        name = prompt(`What is your name?`);
+    }
+    userName.textContent = name;
+    localStorage.setItem(`name`, name);
 }
 /** Part 1: Helper functions end */
 
@@ -67,15 +108,40 @@ async function fetchPeopleInSpace() {
 
 /** Functions to get the user location */
 function locationSuccess(position) {
+    const location = document.querySelector('#actual-location');
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    console.log(position)
+    const ourCoords = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude
+    }
+    console.log(ourCoords)
+
+    localStorage.setItem(`coords`, ourCoords);
+
+    location.textContent = `Latitude: ${latitude}, Longitude: ${longitude}`;
 }
 
 function locationError(err) {
-
+const location = document.querySelector('#actual-location');
+    	location.textContent = 'Unable to retrieve your location';
+    	console.log(err);
 }
 
 function getUserLocation() {
-
+    //get the actual location paragraph
+    const location = document.querySelector('#actual-location');
+    //check if the browser supports geolocation
+    if(!navigator.geolocation) {
+        location.textContent = 'Geolocation is not supported by your browser';
+    }
+    else {
+        location.textContent = 'Locating…';
+        navigator.geolocation.getCurrentPosition(locationSuccess, locationError);
+    }
 }
+
 
 /** Part 2: End */
 
@@ -90,7 +156,9 @@ function makeLocalStorageWork() {
 }
 
 async function runProgram() {
-
+    console.log(localStorage);
+    setTheUsersName();
+    getUserLocation();
     //the functions below make the interactive elements work
     makeLogoSelectWork();
     makeColorSlidersWork();
